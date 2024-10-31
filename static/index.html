@@ -6,42 +6,25 @@
 </head>
 <body>
     <h1>Go WASM Example with TinyGo</h1>
-    <button id="wasmButton" disabled>Loading...</button>
+    <button onclick="wasmFunction()">Call WASM Function</button>
 
+    <script src="wasm_exec.js"></script>
     <script>
-        let wasmInstance;
+        const go = new Go(); // 'Go' is defined in wasm_exec.js
 
-        async function initWasm() {
-            try {
-                const response = await fetch('main.wasm');
-                const buffer = await response.arrayBuffer();
-                const results = await WebAssembly.instantiate(buffer, {
-                    env: {
-                        // Provide any necessary imports here
-                    }
-                });
-                wasmInstance = results.instance;
-                console.log('WASM module instantiated');
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+        }).catch((err) => {
+            console.error('Error instantiating WASM module:', err);
+        });
 
-                // Enable the button and update its text
-                const button = document.getElementById('wasmButton');
-                button.disabled = false;
-                button.textContent = 'Call WASM Function';
-
-                // Add the event listener to the button
-                button.addEventListener('click', () => {
-                    if (wasmInstance && wasmInstance.exports.hello) {
-                        wasmInstance.exports.hello();
-                    } else {
-                        console.error('WASM function "hello" is not available.');
-                    }
-                });
-            } catch (err) {
-                console.error('Error instantiating WASM module:', err);
+        function wasmFunction() {
+            if (typeof hello === 'function') {
+                hello();
+            } else {
+                console.error('Function "hello" is not available.');
             }
         }
-
-        initWasm();
     </script>
 </body>
 </html>
