@@ -16,9 +16,6 @@ RUN mkdir -p static
 # Compile the WASM module using the standard Go compiler
 RUN GOOS=js GOARCH=wasm go build -o static/main.wasm ./frontend
 
-# Copy wasm_exec.js for WebAssembly runtime support
-RUN cp $(go env GOROOT)/misc/wasm/wasm_exec.js static/
-
 # Copy the rest of the application source code
 COPY . .
 
