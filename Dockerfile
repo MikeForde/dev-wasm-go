@@ -1,4 +1,4 @@
-# Stage 1: Build the Go application and WASM module
+# Stage 1: Build the Go application
 FROM registry.access.redhat.com/ubi8/go-toolset:1.18 AS builder
 
 WORKDIR /opt/app-root/src
@@ -6,17 +6,8 @@ WORKDIR /opt/app-root/src
 # Copy the source code
 COPY . .
 
-# Ensure the static directory exists and set the correct permissions
-RUN mkdir -p static && chmod -R 777 static
-
-# Build the Go application binary
+# Build the Go application
 RUN go build -o main .
-
-# Compile the WASM module using the standard Go compiler
-RUN GOOS=js GOARCH=wasm go build -o static/main.wasm ./frontend
-
-# Copy wasm_exec.js for WebAssembly runtime support
-RUN cp $(go env GOROOT)/misc/wasm/wasm_exec.js static/
 
 # Stage 2: Create the final image
 FROM registry.access.redhat.com/ubi8/ubi-minimal
