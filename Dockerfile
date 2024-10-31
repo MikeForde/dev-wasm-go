@@ -1,5 +1,5 @@
 # Stage 1: Build the Go application and WASM module
-FROM registry.access.redhat.com/ubi8/go-toolset:1.18 AS builder
+FROM registry.access.redhat.com/ubi8/go-toolset:1.23 AS builder
 
 WORKDIR /opt/app-root/src
 
