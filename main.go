@@ -2,44 +2,41 @@ package main
 
 import (
 	"log"
-	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	// Ensure the correct MIME type is set for .wasm files
-	mime.AddExtensionType(".wasm", "application/wasm")
-
-	dir, err1 := os.Getwd()
-	if err1 != nil {
-		log.Fatal(err1)
+	// Get current working directory to debug path issues
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
 	}
 	log.Println("Current working directory:", dir)
 
-	// Log the contents of the 'static' directory
-	log.Println("Listing contents of the 'static' folder:")
+	// Log the contents of the 'static' folder using an absolute path
+	staticPath := filepath.Join(dir, "static")
+	log.Println("Listing contents of the 'static' folder at:", staticPath)
 
-	err2 := filepath.Walk("static", func(path string, info os.FileInfo, err2 error) error {
-		if err2 != nil {
-			return err2
+	err = filepath.Walk(staticPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
 		log.Println(path)
 		return nil
 	})
 
-	if err2 != nil {
-		log.Printf("Error listing files in the 'static' folder: %v\n", err2)
+	if err != nil {
+		log.Printf("Error listing files in the 'static' folder: %v\n", err)
 	}
 
-	fs := http.FileServer(http.Dir("./static"))
+	// Start the server using the absolute path to 'static'
+	fs := http.FileServer(http.Dir(staticPath))
 	http.Handle("/", fs)
 
-	log.Println(http.Dir("./static"))
-
 	log.Println("Server listening on :8080...")
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
