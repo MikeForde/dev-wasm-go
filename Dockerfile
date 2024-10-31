@@ -6,7 +6,6 @@ WORKDIR /opt/app-root/src
 # Copy only the necessary files for WASM compilation
 COPY ./frontend ./frontend
 COPY go.mod .
-COPY go.sum .
 
 # Download dependencies
 RUN go mod download
