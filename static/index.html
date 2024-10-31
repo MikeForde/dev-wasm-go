@@ -10,6 +10,8 @@
 
     <script src="wasm_exec.js"></script>
     <script>
+        console.log(typeof Go); 
+        
         const go = new Go(); // 'Go' is defined in wasm_exec.js
 
         WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
