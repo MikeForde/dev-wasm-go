@@ -2,16 +2,52 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Go WASM Example with TinyGo</title>
+    <title>IPS Alt Records Viewer</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-    <h1>Go WASM Example with TinyGo</h1>
+    <h1>IPS Alt Records Viewer</h1>
+    <table id="ipsAltTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Package UUID</th>
+                <th>TimeStamp</th>
+                <th>Patient Name</th>
+                <th>Patient Given</th>
+                <th>Patient DOB</th>
+                <th>Patient Gender</th>
+                <th>Patient Nation</th>
+                <th>Patient Practitioner</th>
+                <th>Patient Organization</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+            </tr>
+        </thead>
+        <tbody id="ipsAltTableBody">
+            <!-- Rows will be inserted here -->
+        </tbody>
+    </table>
+
     <button onclick="wasmFunction()">Call WASM Function</button>
 
     <script src="wasm_exec.js"></script>
     <script>
-
-        const go = new Go(); // 'Go' is defined in wasm_exec.js
+        // Initialize Go WASM runtime
+        const go = new Go();
 
         WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
             go.run(result.instance);
@@ -19,6 +55,7 @@
             console.error('Error instantiating WASM module:', err);
         });
 
+        // Function to call the WASM function defined in Go
         function wasmFunction() {
             if (typeof hello === 'function') {
                 hello();
@@ -26,6 +63,32 @@
                 console.error('Function "hello" is not available.');
             }
         }
+
+        // Fetch data from the API and populate the table
+        fetch('/ipsAlt')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('ipsAltTableBody');
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.id}</td>
+                        <td>${record.packageUUID}</td>
+                        <td>${record.timeStamp}</td>
+                        <td>${record.patientName}</td>
+                        <td>${record.patientGiven}</td>
+                        <td>${record.patientDob}</td>
+                        <td>${record.patientGender || 'N/A'}</td>
+                        <td>${record.patientNation}</td>
+                        <td>${record.patientPractitioner}</td>
+                        <td>${record.patientOrganization || 'N/A'}</td>
+                        <td>${record.createdAt}</td>
+                        <td>${record.updatedAt}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(err => console.error('Error fetching data:', err));
     </script>
 </body>
 </html>

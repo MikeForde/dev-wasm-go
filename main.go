@@ -1,43 +1,73 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
-	// Get current working directory to debug path issues
-	dir, err := os.Getwd()
+// Struct to hold data from the ipsAlt table
+type IpsAlt struct {
+	ID                  int            `json:"id"`
+	PackageUUID         string         `json:"packageUUID"`
+	TimeStamp           string         `json:"timeStamp"`
+	PatientName         string         `json:"patientName"`
+	PatientGiven        string         `json:"patientGiven"`
+	PatientDob          string         `json:"patientDob"`
+	PatientGender       sql.NullString `json:"patientGender"`
+	PatientNation       string         `json:"patientNation"`
+	PatientPractitioner string         `json:"patientPractitioner"`
+	PatientOrganization sql.NullString `json:"patientOrganization"`
+	CreatedAt           string         `json:"createdAt"`
+	UpdatedAt           string         `json:"updatedAt"`
+}
+
+// Connect to MySQL and fetch data
+func getIpsAltHandler(w http.ResponseWriter, r *http.Request) {
+	// Replace with your MySQL connection details
+	db, err := sql.Open("mysql", "root:password@tcp(host.docker.internal:3306)/test")
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Current working directory:", dir)
+	defer db.Close()
 
-	// Log the contents of the 'static' folder using an absolute path
-	staticPath := filepath.Join(dir, "static")
-	log.Println("Listing contents of the 'static' folder at:", staticPath)
-
-	err = filepath.Walk(staticPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		log.Println(path)
-		return nil
-	})
-
+	rows, err := db.Query("SELECT * FROM ipsAlt")
 	if err != nil {
-		log.Printf("Error listing files in the 'static' folder: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var results []IpsAlt
+	for rows.Next() {
+		var ips IpsAlt
+		err := rows.Scan(&ips.ID, &ips.PackageUUID, &ips.TimeStamp, &ips.PatientName,
+			&ips.PatientGiven, &ips.PatientDob, &ips.PatientGender, &ips.PatientNation,
+			&ips.PatientPractitioner, &ips.PatientOrganization, &ips.CreatedAt, &ips.UpdatedAt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		results = append(results, ips)
 	}
 
-	// Start the server using the absolute path to 'static'
-	fs := http.FileServer(http.Dir(staticPath))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
+func main() {
+	// Serve static files from the 'static' directory
+	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	log.Println("Server listening on :8080...")
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
+	// API endpoint for fetching IPS Alt records
+	http.HandleFunc("/ipsAlt", getIpsAltHandler)
+
+	log.Println("Server starting on :8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
 }
