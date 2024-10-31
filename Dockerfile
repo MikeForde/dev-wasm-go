@@ -6,6 +6,9 @@ WORKDIR /opt/app-root/src
 # Copy the source code
 COPY . .
 
+# Ensure the static directory exists and set the correct permissions
+RUN mkdir -p static && chmod -R 777 static
+
 # Build the Go application binary
 RUN go build -o main .
 
