@@ -3,13 +3,16 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Struct to hold data from the ipsAlt table
 type IpsAlt struct {
 	ID                  int            `json:"id"`
 	PackageUUID         string         `json:"packageUUID"`
@@ -25,10 +28,38 @@ type IpsAlt struct {
 	UpdatedAt           string         `json:"updatedAt"`
 }
 
-// Connect to MySQL and fetch data
+func init() {
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found or could not be loaded")
+	}
+}
+
+func getDBConnection() (*sql.DB, error) {
+	// Read database connection details from environment variables
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT") // Read port from environment variable, or use a default value
+	if port == "" {
+		port = "3306" // Default port if not specified
+	}
+	dbName := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, password, host, port, dbName)
+
+	fmt.Println("Connecting to DB with DSN:", dsn)
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
 func getIpsAltHandler(w http.ResponseWriter, r *http.Request) {
-	// Replace with your MySQL connection details
-	db, err := sql.Open("mysql", "root:password@tcp(host.docker.internal:3306)/test")
+	db, err := getDBConnection()
 	if err != nil {
 		log.Fatal(err)
 	}
