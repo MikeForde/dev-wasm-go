@@ -29,10 +29,15 @@ type IpsAlt struct {
 }
 
 func init() {
-	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found or could not be loaded")
+	// Attempt to load the .env file, but continue without it if not found
+	if _, err := os.Stat(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			log.Println("Error loading .env file, proceeding with system environment variables:", err)
+		} else {
+			log.Println(".env file loaded successfully")
+		}
+	} else {
+		log.Println("No .env file found, using system environment variables")
 	}
 }
 
