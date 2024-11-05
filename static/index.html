@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>IPS Alt Records Viewer</title>
@@ -7,40 +8,29 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid black;
             padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #f2f2f2;
         }
+
+        h2 {
+            margin-top: 40px;
+        }
     </style>
 </head>
+
 <body>
     <h1>IPS Alt Records Viewer</h1>
-    <table id="ipsAltTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Package UUID</th>
-                <th>TimeStamp</th>
-                <th>Patient Name</th>
-                <th>Patient Given</th>
-                <th>Patient DOB</th>
-                <th>Patient Gender</th>
-                <th>Patient Nation</th>
-                <th>Patient Practitioner</th>
-                <th>Patient Organization</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-            </tr>
-        </thead>
-        <tbody id="ipsAltTableBody">
-            <!-- Rows will be inserted here -->
-        </tbody>
-    </table>
+    <div id="recordsContainer"></div>
 
     <button onclick="wasmFunction()">Call WASM Function</button>
 
@@ -64,31 +54,165 @@
             }
         }
 
-        // Fetch data from the API and populate the table
+        // Fetch data from the API and populate the details
         fetch('/ipsAlt')
             .then(response => response.json())
             .then(data => {
-                const tableBody = document.getElementById('ipsAltTableBody');
+                const container = document.getElementById('recordsContainer');
                 data.forEach(record => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${record.id}</td>
-                        <td>${record.packageUUID}</td>
-                        <td>${record.timeStamp}</td>
-                        <td>${record.patientName}</td>
-                        <td>${record.patientGiven}</td>
-                        <td>${record.patientDob}</td>
-                        <td>${record.patientGender || 'N/A'}</td>
-                        <td>${record.patientNation}</td>
-                        <td>${record.patientPractitioner}</td>
-                        <td>${record.patientOrganization || 'N/A'}</td>
-                        <td>${record.createdAt}</td>
-                        <td>${record.updatedAt}</td>
-                    `;
-                    tableBody.appendChild(row);
+                    // Create a section for each record
+                    const recordSection = document.createElement('div');
+                    recordSection.innerHTML = `
+                <h2>Record ID: ${record.id}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Package UUID</th>
+                            <th>TimeStamp</th>
+                            <th>Patient Name</th>
+                            <th>Patient Given</th>
+                            <th>Patient DOB</th>
+                            <th>Patient Gender</th>
+                            <th>Patient Nation</th>
+                            <th>Patient Practitioner</th>
+                            <th>Patient Organization</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${record.id}</td>
+                            <td>${record.packageUUID}</td>
+                            <td>${record.timeStamp}</td>
+                            <td>${record.patientName}</td>
+                            <td>${record.patientGiven}</td>
+                            <td>${record.patientDob}</td>
+                            <td>${record.patientGender || 'N/A'}</td>
+                            <td>${record.patientNation}</td>
+                            <td>${record.patientPractitioner}</td>
+                            <td>${record.patientOrganization || 'N/A'}</td>
+                            <td>${record.createdAt}</td>
+                            <td>${record.updatedAt}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Medications</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Dosage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(record.medications || []).map(med => `
+                            <tr>
+                                <td>${med.id}</td>
+                                <td>${med.name}</td>
+                                <td>${med.date}</td>
+                                <td>${med.dosage}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Allergies</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Criticality</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(record.allergies || []).map(allergy => `
+                            <tr>
+                                <td>${allergy.id}</td>
+                                <td>${allergy.name}</td>
+                                <td>${allergy.criticality}</td>
+                                <td>${allergy.date}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Conditions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(record.conditions || []).map(condition => `
+                            <tr>
+                                <td>${condition.id}</td>
+                                <td>${condition.name}</td>
+                                <td>${condition.date}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Observations</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(record.observations || []).map(observation => `
+                            <tr>
+                                <td>${observation.id}</td>
+                                <td>${observation.name}</td>
+                                <td>${observation.date}</td>
+                                <td>${observation.value}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Immunizations</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>System</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(record.immunizations || []).map(immunization => `
+                            <tr>
+                                <td>${immunization.id}</td>
+                                <td>${immunization.name}</td>
+                                <td>${immunization.system}</td>
+                                <td>${immunization.date}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+                    container.appendChild(recordSection);
                 });
             })
             .catch(err => console.error('Error fetching data:', err));
+
     </script>
 </body>
+
 </html>
