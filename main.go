@@ -62,7 +62,7 @@ type Observation struct {
     IPSModelID int    `json:"ipsModelId"`
     Name       string `json:"name"`
     Date       string `json:"date"`
-    Value      string `json:"value"`
+    Value     sql.NullString `json:"value"`
 }
 
 type Immunization struct {
@@ -242,7 +242,7 @@ func fetchConditions(db *sql.DB, ipsModelID string) ([]Condition, error) {
 }
 
 func fetchObservations(db *sql.DB, ipsModelID string) ([]Observation, error) {
-    query := `SELECT id, IPSModelId, name, date, value FROM Observations WHERE IPSModelId = ?`
+    query := `SELECT id, ipsModelId, name, date, value FROM Observations WHERE ipsModelId = ?`
     rows, err := db.Query(query, ipsModelID)
     if err != nil {
         return nil, err
@@ -252,14 +252,22 @@ func fetchObservations(db *sql.DB, ipsModelID string) ([]Observation, error) {
     var observations []Observation
     for rows.Next() {
         var observation Observation
-        err := rows.Scan(&observation.ID, &observation.IPSModelID, &observation.Name, &observation.Date, &observation.Value)
+        err := rows.Scan(&observation.ID, &observation.IPSModelID, &observation.Name, &observation.Date,
+            &observation.Value)
         if err != nil {
             return nil, err
         }
+
+        // Convert `sql.NullString` to an empty string or placeholder if `NULL`
+        if !observation.Value.Valid {
+            observation.Value.String = "N/A"
+        }
+
         observations = append(observations, observation)
     }
     return observations, nil
 }
+
 
 func fetchImmunizations(db *sql.DB, ipsModelID string) ([]Immunization, error) {
     query := "SELECT id, IPSModelId, name, `system`, date FROM Immunizations WHERE IPSModelId = ?"
