@@ -89,10 +89,10 @@
                             <td>${record.patientName}</td>
                             <td>${record.patientGiven}</td>
                             <td>${record.patientDob}</td>
-                            <td>${record.patientGender || 'N/A'}</td>
+                            <td>${record.patientGender.String || 'N/A'}</td>
                             <td>${record.patientNation}</td>
                             <td>${record.patientPractitioner}</td>
-                            <td>${record.patientOrganization || 'N/A'}</td>
+                            <td>${record.patientOrganization.String || 'N/A'}</td>
                             <td>${record.createdAt}</td>
                             <td>${record.updatedAt}</td>
                         </tr>
@@ -179,7 +179,7 @@
                                 <td>${observation.id}</td>
                                 <td>${observation.name}</td>
                                 <td>${observation.date}</td>
-                                <td>${observation.value}</td>
+                                <td>${observation.value.String || 'N/A'}</td>
                             </tr>
                         `).join('')}
                     </tbody>
