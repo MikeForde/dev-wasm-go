@@ -135,6 +135,14 @@ func getIpsAltHandler(w http.ResponseWriter, r *http.Request) {
             return
         }
 
+        // Handle NULL conversions for JSON response
+        if !ips.PatientGender.Valid {
+            ips.PatientGender.String = "N/A"
+        }
+        if !ips.PatientOrganization.Valid {
+            ips.PatientOrganization.String = "N/A"
+        }
+
         // Fetch related data for each IPS Alt record
         ips.Medications, err = fetchMedications(db, fmt.Sprintf("%d", ips.ID))
         if err != nil {
@@ -169,6 +177,7 @@ func getIpsAltHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(results)
 }
+
 
 
 func fetchMedications(db *sql.DB, ipsModelID string) ([]Medication, error) {
