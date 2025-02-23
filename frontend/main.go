@@ -1,4 +1,5 @@
 //go:build js && wasm
+// working version of the code
 
 package main
 
